@@ -35,10 +35,13 @@ def load_data():
 
 def fetch_record_count(url: str):
     options = Options()
-    options.headless = True
+    options.add_argument("--headless")
     driver = webdriver.Chrome(options=options)
     driver.get(url)
     time.sleep(3)
+
+    count: int | None = None
+
     try:
         content_div = driver.find_element(By.ID, "search-content")
         text = content_div.text.strip()
@@ -50,25 +53,32 @@ def fetch_record_count(url: str):
             count = int(number_str)
     except Exception as e:
         print("❌ Error finding the search-content element:", e)
-    driver.quit()
+    finally:
+        driver.quit()
+
     return count
 
-def load_previous_counts(filename="record_counts.json"):
+def load_previous_counts(filename: str) -> dict[str,int]:
     try: 
         with open(filename, "r") as f:
             return (json.load(f))
     except FileNotFoundError:
         return {}
     
-def save_counts(counts, filename="record_counts.json"):
-    with open(filename, "w") as f:
-        json.dump(counts, f, indent=2)
+def save_counts(counts: dict[str, int], filename: str) -> None:
+    try:
+        with open(filename, "w") as f:
+            json.dump(counts, f, indent=2)
+    except IOError as e:
+         print(f"❌ Failed to save counts to '{filename}': {e}")
 
-def get_body_part_label(url: str, body_part_map: dict) -> str:
+def get_body_part_label(url: str, body_part_map: dict[str, str]) -> str | None:
     parsed = urlparse(url)
     params = parse_qs(parsed.query)
     body_part_code = params.get("body_part", [None])[0]
-    body_part_label = body_part_map.get(body_part_code, body_part_code or "Unknown")
+    if body_part_code is None:
+        return None
+    body_part_label = body_part_map.get(body_part_code)
     return body_part_label
 
 def build_message(body_part:str, search_url:str, old_count:int, new_count:int):
@@ -96,25 +106,34 @@ def send_notification(subscriber_list:list[str], message_list:list[str]):
 
 def main():
     url_list, subscriber_list, body_part_map = load_data()
-    historical_counts = load_previous_counts()
-    latest_counts = {}
-    message_builder = []
+    historical_counts = load_previous_counts("records_counts.json")
+    latest_counts: dict[str, int] = {}
+    message_builder: list[str] = []
+    hasUpdates: bool = False
 
     for search_url in url_list:
         label = get_body_part_label(search_url, body_part_map)
         count = fetch_record_count(search_url)
-        if count is not None and label is not None:
-            latest_counts[search_url] = count
-            previous_counts = historical_counts.get(search_url)
-            if previous_counts is None:
-                print(f"🔍 [{label}] Initial record count: {count}")
-            elif count != previous_counts:
-                print(f"📢 [{label}] Record count changed: {previous_counts} → {count}")
-                message_builder.append(build_message(label, search_url, previous_counts, count))
-            else:
-                print(f"✅ [{label}] No change in record count ({count})")
-    save_counts(latest_counts)
-    send_notification(subscriber_list, message_builder)
+
+        if label is None or count is None:
+            continue
+        
+        latest_counts[search_url] = count
+        previous_counts = historical_counts.get(search_url)
+
+        if previous_counts is None:
+            print(f"🔍 [{label}] Initial record count: {count}")
+        elif count != previous_counts:
+            print(f"📢 [{label}] Record count changed: {previous_counts} → {count}")
+        else:
+            print(f"✅ [{label}] No change in record count ({count})")
+            hasUpdates = True
+            message_builder.append(build_message(label, search_url, previous_counts, count))
+            
+    save_counts(latest_counts, "records_counts.json")
+
+    if hasUpdates:
+        send_notification(subscriber_list, message_builder)
 
 if __name__ == "__main__":
     main()
