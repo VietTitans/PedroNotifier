@@ -9,6 +9,9 @@ on:
 jobs:
   run-script:
     runs-on: ubuntu-latest
+    env:
+        SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
 
     steps:
     - name: Checkout repository
@@ -41,7 +44,5 @@ jobs:
       with:
         name: records_counts
         path: records_counts.json
-    env:
-        SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
-        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+    
 
