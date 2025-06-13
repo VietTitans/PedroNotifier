@@ -142,10 +142,10 @@ def main():
             print(f"🔍 [{label}] Initial record count: {count}")
         elif count != previous_counts:
             print(f"📢 [{label}] Record count changed: {previous_counts} → {count}")
-        else:
-            print(f"✅ [{label}] No change in record count ({count})")
             hasUpdates = True
             message_builder.append(build_message(label, search_url, previous_counts, count))
+        else:
+            print(f"✅ [{label}] No change in record count ({count})")
             
     save_counts(latest_counts, "records_counts.json")
 
