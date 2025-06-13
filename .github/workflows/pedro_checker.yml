@@ -9,7 +9,10 @@ on:
 jobs:
   run-script:
     runs-on: ubuntu-latest
-    
+    env:
+        SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
