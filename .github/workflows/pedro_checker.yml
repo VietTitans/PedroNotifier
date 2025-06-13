@@ -34,3 +34,12 @@ jobs:
         git add records_counts.json
         git commit -m "Update counts" || echo "No changes to commit"
         git push
+    
+    - name: Upload records_counts.json artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: records_counts
+        path: records_counts.json
+    env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
