@@ -43,5 +43,5 @@ jobs:
         path: records_counts.json
     env:
         SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
 
