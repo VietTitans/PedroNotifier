@@ -40,7 +40,8 @@ def add_subscriber(subscriber_list: list[str], new_email: str) -> None:
         print(f"✅ Added new subscriber: {new_email}")
     else:
         print(f"ℹ️ Subscriber {new_email} already in the list")
-    
+
+# TODO
 # def remove_subscriber(email: str, subscriber_list: list[str]):
 # def add_tracking_url(url: str, url_list: list[str]):
 # def remove_tracking_url(url: str, url_list: list[str]):
@@ -141,10 +142,10 @@ def main():
             print(f"🔍 [{label}] Initial record count: {count}")
         elif count != previous_counts:
             print(f"📢 [{label}] Record count changed: {previous_counts} → {count}")
-            hasUpdates = True
-            message_builder.append(build_message(label, search_url, previous_counts, count))
         else:
             print(f"✅ [{label}] No change in record count ({count})")
+            hasUpdates = True
+            message_builder.append(build_message(label, search_url, previous_counts, count))
             
     save_counts(latest_counts, "records_counts.json")
 
