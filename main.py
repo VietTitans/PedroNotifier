@@ -33,6 +33,17 @@ def load_data():
     }
     return url_list, subscriber_list, body_part_map
 
+def add_subscriber(subscriber_list: list[str], new_email: str) -> None:
+    if new_email not in subscriber_list:
+        subscriber_list.append(new_email)
+        print(f"✅ Added new subscriber: {new_email}")
+    else:
+        print(f"ℹ️ Subscriber {new_email} already in the list")
+    
+# def remove_subscriber(email: str, subscriber_list: list[str]):
+# def add_tracking_url(url: str, url_list: list[str]):
+# def remove_tracking_url(url: str, url_list: list[str]):
+
 def fetch_record_count(url: str):
     options = Options()
     options.add_argument("--headless")
@@ -125,10 +136,10 @@ def main():
             print(f"🔍 [{label}] Initial record count: {count}")
         elif count != previous_counts:
             print(f"📢 [{label}] Record count changed: {previous_counts} → {count}")
-        else:
-            print(f"✅ [{label}] No change in record count ({count})")
             hasUpdates = True
             message_builder.append(build_message(label, search_url, previous_counts, count))
+        else:
+            print(f"✅ [{label}] No change in record count ({count})")
             
     save_counts(latest_counts, "records_counts.json")
 
