@@ -7,6 +7,7 @@ import re
 import time
 import json
 import smtplib
+import os
 
 def load_data():
     # Add URL in the list below. Remember to add comma at the end of each URL
@@ -103,8 +104,12 @@ def build_message(body_part:str, search_url:str, old_count:int, new_count:int):
     return message_body
 
 def send_notification(subscriber_list:list[str], message_list:list[str]):
-    sender = "mattnhudinh@gmail.com"
-    app_password = "thwj gbbh rxjr oabi"
+    sender = os.environ.get("EMAIL_SENDER")
+    if sender is None:
+        raise ValueError("Missing SENDER_EMAIL environment variable")
+    app_password = os.environ.get("secrets.EMAIL_PASSWORD")
+    if app_password is None:
+        raise ValueError("Missing app_password environment variable")
     message = "".join(message_list)
     for subscriber in subscriber_list:
         msg = MIMEText(message)
