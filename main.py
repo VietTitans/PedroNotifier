@@ -105,7 +105,7 @@ def build_message(body_part:str, search_url:str, old_count:int, new_count:int):
     return message_body
 
 def send_notification(subscriber_list:list[str], message_list:list[str]):
-    sender = os.environ.get("EMAIL_SENDER")
+    sender = os.environ.get("SENDER_EMAIL")
     if sender is None:
         raise ValueError("Missing SENDER_EMAIL environment variable")
     app_password = os.environ.get("secrets.EMAIL_PASSWORD")
