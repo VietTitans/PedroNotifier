@@ -52,7 +52,7 @@ You can expand load_data() to load from files or databases.
 Errors during scraping are caught and logged.
 
 🔄 Future Improvements
-✅ Add/remove subscribers dynamically
+✅ Add/remove subscribers dynamically 
 ✅ Add/remove tracked URLs dynamically
 🔄 Web UI or CLI tool
 🔄 Scheduling via cron job or Windows Task Scheduler
