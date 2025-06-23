@@ -12,11 +12,13 @@ import os
 def load_data():
     # Add URL in the list below. Remember to add comma at the end of each URL
     url_list = [
-        "https://search.pedro.org.au/advanced-search/results?abstract_with_title=&therapy=0&problem=0&body_part=VL01391&subdiscipline=0&topic=0&method=0&authors_association=&title=&source=&year_of_publication=&date_record_was_created=&nscore=&perpage=20&find=&find=Start+Search",
-        "https://search.pedro.org.au/advanced-search/results?abstract_with_title=&therapy=0&problem=0&body_part=VL01394&subdiscipline=0&topic=0&method=0&authors_association=&title=&source=&year_of_publication=&date_record_was_created=&nscore=&perpage=20&find=&find=Start+Search"
+        "https://search.pedro.org.au/advanced-search/results?abstract_with_title=&therapy=VL01387&problem=VL01371&body_part=VL01396&subdiscipline=VL01359&topic=VL01402&method=0&authors_association=&title=&source=&year_of_publication=2020&date_record_was_created=&nscore=&perpage=20&lop=and&find=&find=Start+Search",
+        "https://search.pedro.org.au/advanced-search/results?abstract_with_title=&therapy=VL01387&problem=VL01371&body_part=VL01391&subdiscipline=VL01359&topic=VL01402&method=0&authors_association=&title=&source=&year_of_publication=2020&date_record_was_created=&nscore=&perpage=20&lop=and&find=&find=Start+Search",
+        "https://search.pedro.org.au/advanced-search/results?abstract_with_title=ACL&therapy=VL01387&problem=VL01375&body_part=VL01399&subdiscipline=VL01361&topic=VL01406&method=0&authors_association=&title=&source=&year_of_publication=2020&date_record_was_created=&nscore=&perpage=20&lop=and&find=&find=Start+Search",
     ]
     subscriber_list = [
         "mattnhudinh@gmail.com",
+        "Nikolaj.Frank.Nielsen@randers.dk",
     ]
     body_part_map = {
         "VL01390": "Head or neck",
@@ -34,41 +36,20 @@ def load_data():
     }
     return url_list, subscriber_list, body_part_map
 
-def add_subscriber(subscriber_list: list[str], new_email: str) -> None:
-    if new_email not in subscriber_list:
-        subscriber_list.append(new_email)
-        print(f"✅ Added new subscriber: {new_email}")
-    else:
-        print(f"ℹ️ Subscriber {new_email} already in the list")
-
-# TODO
-# def remove_subscriber(email: str, subscriber_list: list[str]):
-# def add_tracking_url(url: str, url_list: list[str]):
-# def remove_tracking_url(url: str, url_list: list[str]):
-
-def fetch_record_count(url: str):
-    options = Options()
-    options.add_argument("--headless")
-    driver = webdriver.Chrome(options=options)
-    driver.get(url)
-    time.sleep(3)
-
+def fetch_record_count(url: str, driver: webdriver.Chrome) -> int | None:
     count: int | None = None
-
     try:
+        driver.get(url)
+        time.sleep(3)
         content_div = driver.find_element(By.ID, "search-content")
         text = content_div.text.strip()
         normalized_text = ' '.join(text.split())
-
         match = re.search(r'Found\s+([\d,]+)\s+records', normalized_text, re.IGNORECASE)
         if match:
             number_str = match.group(1).replace(",", "")
             count = int(number_str)
     except Exception as e:
         print("❌ Error finding the search-content element:", e)
-    finally:
-        driver.quit()
-
     return count
 
 def load_previous_counts(filename: str) -> dict[str,int]:
@@ -95,7 +76,7 @@ def get_body_part_label(url: str, body_part_map: dict[str, str]) -> str | None:
     return body_part_label
 
 def build_message(body_part:str, search_url:str, old_count:int, new_count:int):
-    updated_count = old_count - new_count
+    updated_count = new_count - old_count
     message_body = (
         f"🧠 PEDro update for: {body_part}\n"
         f"📈 Numbers of new records: {updated_count}\n"
@@ -123,14 +104,19 @@ def send_notification(subscriber_list:list[str], message_list:list[str]):
 
 def main():
     url_list, subscriber_list, body_part_map = load_data()
+    url_list = list(set(url_list))
     historical_counts = load_previous_counts("records_counts.json")
     latest_counts: dict[str, int] = {}
     message_builder: list[str] = []
     hasUpdates: bool = False
 
+    options = Options()
+    options.add_argument("--headless")
+    driver = webdriver.Chrome(options=options)
+
     for search_url in url_list:
         label = get_body_part_label(search_url, body_part_map)
-        count = fetch_record_count(search_url)
+        count = fetch_record_count(search_url, driver)
 
         if label is None or count is None:
             continue
@@ -139,15 +125,15 @@ def main():
         previous_counts = historical_counts.get(search_url)
 
         if previous_counts is None:
-            print(f"🔍 [{label}] Initial record count: {count}")
+            print(f"[{label}] Initial record count: {count}")
         elif count != previous_counts:
-            print(f"📢 [{label}] Record count changed: {previous_counts} → {count}")
+            print(f"[{label}] Record count changed: {previous_counts} → {count}")
             hasUpdates = True
             message_builder.append(build_message(label, search_url, previous_counts, count))
         else:
-            print(f"✅ [{label}] No change in record count ({count})")
-            
+            print(f"[{label}] No change in record count ({count})")
     save_counts(latest_counts, "records_counts.json")
+    driver.quit()
 
     if hasUpdates:
         send_notification(subscriber_list, message_builder)
