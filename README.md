@@ -36,15 +36,17 @@ Record counts are stored in records_counts.json.
 If the count increases, subscribers receive an email notification.
 Uses one headless ChromeDriver session for efficiency.
 
-*************************
 ✉️ Email Format
+
 Sample email content:
 
 🧠 PEDro update for: Lumbar spine, SIJ or pelvis
+
 📈 Numbers of new records: 2
+
 🔗 URL:
-https://search.pedro.org.au/advanced-search/results?...  
-*************************
+
+https://search.pedro.org.au/advanced-search/results?
 
 📌 Notes
 Duplicates in url_list are automatically removed.
