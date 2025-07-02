@@ -34,10 +34,27 @@ jobs:
       run: |
         git config --global user.name "github-actions"
         git config --global user.email "actions@github.com"
-        git pull origin main --rebase
+
+        # Stage the file
         git add records_counts.json
-        git commit -m "Update counts" || echo "No changes to commit"
-        git push origin main
+
+        # Check if there are staged changes
+        if git diff --cached --quiet; then
+          echo "✅ No changes to commit."
+        else
+          echo "📦 Changes detected. Committing and pushing..."
+          git commit -m "🔄 Update counts [GitHub Actions]"
+          
+          # Pull with rebase and handle possible conflicts
+          git pull origin main --rebase || {
+            echo "⚠️ Rebase failed. Aborting rebase and skipping push."
+            git rebase --abort
+            exit 1
+          }
+
+          # Push the update
+          git push origin main
+        fi
     
     - name: Upload records_counts.json artifact
       uses: actions/upload-artifact@v4
