@@ -2,8 +2,7 @@ name: PEDro Watcher
 
 on:
   schedule:
-    - cron: "0 7 1-14 * *"   # 07:00 UTC on days 1–14
-    - cron: "0 19 1-14 * *"  # 19:00 UTC on days 1–14   
+    - cron: "0 12 1,15 * *"   # 12:00 UTC on days 1st and 15th
   workflow_dispatch:      
 
 jobs:
