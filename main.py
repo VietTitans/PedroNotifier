@@ -16,10 +16,10 @@ def load_data():
         "https://search.pedro.org.au/advanced-search/results?abstract_with_title=&therapy=VL01387&problem=VL01371&body_part=VL01391&subdiscipline=VL01359&topic=VL01402&method=0&authors_association=&title=&source=&year_of_publication=2020&date_record_was_created=&nscore=&perpage=20&lop=and&find=&find=Start+Search",
         "https://search.pedro.org.au/advanced-search/results?abstract_with_title=ACL&therapy=VL01387&problem=VL01375&body_part=VL01399&subdiscipline=VL01361&topic=VL01406&method=0&authors_association=&title=&source=&year_of_publication=2020&date_record_was_created=&nscore=&perpage=20&lop=and&find=&find=Start+Search",
     ]
-    subscriber_list = [
-        "mattnhudinh@gmail.com",
-        "Nikolaj.Frank.Nielsen@randers.dk",
-    ]
+    
+    subscriber_env = os.environ.get("SUBSCRIBERS", "")
+    subscriber_list = [email.strip() for email in subscriber_env.split(",") if email.strip()]
+
     body_part_map = {
         "VL01390": "Head or neck",
         "VL01391": "Upper arm, shoulder or shoulder girdle",
@@ -93,6 +93,8 @@ def send_notification(subscriber_list:list[str], message_list:list[str]):
     if app_password is None:
         raise ValueError("Missing app_password environment variable")
     message = "".join(message_list)
+    if not subscriber_list:
+        raise ValueError("⚠️ No subscribers found. Skipping email notification.")
     for subscriber in subscriber_list:
         msg = MIMEText(message)
         msg["Subject"] = "New PEDro Research Alerts"
