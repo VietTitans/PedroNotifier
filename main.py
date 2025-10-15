@@ -84,7 +84,10 @@ def build_message(body_part:str, search_url:str, old_count:int, new_count:int):
         f"*************************\n\n"
     )
     return message_body
-
+    
+def is_valid_email(email):
+    return re.match(r"[^@]+@[^@]+\.[^@]+", email)
+    
 def send_notification(subscriber_list:list[str], message_list:list[str]):
     sender = os.environ.get("SENDER_EMAIL")
     if sender is None:
@@ -96,6 +99,9 @@ def send_notification(subscriber_list:list[str], message_list:list[str]):
     if not subscriber_list:
         raise ValueError("⚠️ No subscribers found. Skipping email notification.")
     for subscriber in subscriber_list:
+        if not is_valid_email(subscriber):
+            print(f"Skipping invalid email: {subscriber}")
+            continue
         msg = MIMEText(message)
         msg["Subject"] = "New PEDro Research Alerts"
         msg["From"] = sender
